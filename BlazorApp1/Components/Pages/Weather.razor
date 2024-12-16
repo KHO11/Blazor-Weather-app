@@ -1,0 +1,53 @@
+﻿@page "/weather"
+@attribute [StreamRendering]
+
+@inject WeatherService WeatherService
+
+<h3>Weather Forecast</h3>
+
+<input @bind="City" placeholder="Enter city" />
+<input @bind="Count" type="number" placeholder="Number of days" />
+<button @onclick="FetchWeatherForecast">Get Weather Forecast</button>
+
+@if (WeatherForecast != null)
+{
+    <div>
+        <h4>Weather Forecast for @WeatherForecast.City.Name</h4>
+        @foreach (var day in WeatherForecast.List)
+        {
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <p><strong>Day Temperature:</strong> @day.Temp.Day °C</p>
+                <p><strong>Night Temperature:</strong> @day.Temp.Night °C</p>
+                <p><strong>Condition:</strong> @day.WeatherDescription</p>
+            </div>
+        }
+    </div>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p style="color: red;">@ErrorMessage</p>
+}
+
+@code {
+    private string City = "London"; // Default city
+    private int Count = 7;          // Default number of days
+    private WeatherForecastResponse WeatherForecast;
+    private string ErrorMessage;
+
+    private async Task FetchWeatherForecast()
+    {
+        ErrorMessage = null;
+        try
+        {
+            WeatherForecast = await WeatherService.GetWeatherForecastAsync(City, Count);
+        }
+        catch (HttpRequestException ex)
+        {
+            ErrorMessage = $"Unable to fetch weather data: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+        }
+    }
+}
